@@ -1,0 +1,389 @@
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 18:14.27
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): sourcetest_1454.txt
+TimeStamp: 04/10/2024 18:14.27
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 18:14.27
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): .DS_Store
+TimeStamp: 04/10/2024 19:36.47
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): sourcetest_1454.txt
+TimeStamp: 04/10/2024 19:36.47
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 19:36.47
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 20:05.50
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 20:05.50
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 20:11.21
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 20:12.03
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 20:12.05
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 20:55.25
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 20:56.57
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:04.18
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:06.04
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:11.03
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 21:18.30
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:18.39
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:26.14
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 21:31.03
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 21:31.03
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:31.03
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:35.36
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:35.37
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:35.39
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 21:35.47
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 21:35.47
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 21:35.47
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 22:41.38
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 22:41.38
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 22:41.38
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 22:41.43
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 22:44.08
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 22:44.08
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 22:44.08
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 22:44.08
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 22:57.13
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 22:57.13
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 22:57.13
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 22:57.13
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 23:07.17
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:07.17
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 23:07.17
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:07.17
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/destFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:07.17
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:13.45
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 23:13.45
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:13.45
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): .DS_Store
+TimeStamp: 04/10/2024 23:13.45
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/destFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:13.45
+
+Action: Delete
+Source forder:
+Destination forder:
+File name(s): <PROJECT_ROOT>/destFolder/source
+TimeStamp: 04/10/2024 23:13.45
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 23:20.06
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:20.06
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 23:20.06
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 23:20.06
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:20.06
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/destFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:20.06
+
+Action: Delete
+Source forder:
+Destination forder:
+File name(s): <PROJECT_ROOT>/destFolder/source
+TimeStamp: 04/10/2024 23:20.26
+
+Action: Directory Creation
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source
+File name(s):
+TimeStamp: 04/10/2024 23:23.58
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:23.58
+
+Action: copy
+Source forder: <PROJECT_ROOT>/srcFolder/
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 23:23.58
+
+Action: Update
+Source forder: <PROJECT_ROOT>/srcFolder/source
+Destination forder: <PROJECT_ROOT>/destFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:23.58
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/srcFolder/source/test_1454.txt
+File name(s): <PROJECT_ROOT>/destFolder/source/test_1454.txt
+TimeStamp: 04/10/2024 23:24.40
+
+Action: Delete
+Source forder:
+Destination forder:
+File name(s): <PROJECT_ROOT>/destFolder/source
+TimeStamp: 04/10/2024 23:25.34
+
+Action: Delete
+Source forder:
+Destination forder: <PROJECT_ROOT>/destFolder/
+File name(s): test_1454.txt
+TimeStamp: 04/10/2024 23:26.23

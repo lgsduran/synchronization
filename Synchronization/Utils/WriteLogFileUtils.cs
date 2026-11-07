@@ -1,4 +1,3 @@
-﻿using Synchronization.Logs;
 using Synchronization.Settings;
 
 namespace Synchronization.Utils
@@ -8,6 +7,8 @@ namespace Synchronization.Utils
     /// </summary>
     public class WriteLogFileUtils
     {
+        private static readonly object WriteLock = new();
+
         /// <summary>
         /// Method <c>WriteFile</c> updates the log file according to the input action.
         /// <exception cref="Exception">
@@ -16,23 +17,23 @@ namespace Synchronization.Utils
         /// </summary>
         public void WriteFile(string action, string fileNames, string srcFolder, string destFolder)
         {
-            var _log = new ConsoleLog("WriteLogeFileUtils");
-            string fileName = "SynchronizationLog.txt";
-            try
-            {
-                using var sw = new StreamWriter(FolderOptions.LogFilePath + fileName, true);                
-                    sw.WriteLine("Action: {0}", action);
-                    sw.WriteLine("Source forder: {0}", srcFolder);
-                    sw.WriteLine("Destination forder: {0}", destFolder);
-                    sw.WriteLine("File name(s): {0}", fileNames);
-                    sw.WriteLine("TimeStamp: {0}", DateTime.Now.ToString("MM/dd/yyyy HH:mm.ss"));
-                    sw.WriteLine("");                
-            }
-            catch (Exception e)
-            {
-                _log.Error($"Log file failed: {e.Message}");
-            }
+            if (string.IsNullOrWhiteSpace(FolderOptions.LogFilePath))
+                throw new InvalidOperationException("The log directory is not configured.");
+
+            var logDirectory = Path.GetFullPath(FolderOptions.LogFilePath);
+            Directory.CreateDirectory(logDirectory);
+            var logPath = Path.Combine(logDirectory, "SynchronizationLog.txt");
+            var entry = string.Join(
+                Environment.NewLine,
+                $"Action: {action}",
+                $"Source folder: {srcFolder}",
+                $"Destination folder: {destFolder}",
+                $"File name(s): {fileNames}",
+                $"Timestamp (UTC): {DateTimeOffset.UtcNow:O}",
+                string.Empty);
+
+            lock (WriteLock)
+                File.AppendAllText(logPath, entry + Environment.NewLine);
         }
     }
 }
-

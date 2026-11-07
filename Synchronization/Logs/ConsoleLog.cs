@@ -7,11 +7,19 @@ namespace Synchronization.Logs
     /// </summary>
     public class ConsoleLog
     {
-        private string _className;
+        private static readonly ILoggerFactory LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+            builder.AddSimpleConsole(options =>
+            {
+                options.IncludeScopes = true;
+                options.SingleLine = true;
+                options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+            }));
+
+        private readonly ILogger _logger;
 
         public ConsoleLog(string className)
         {
-            _className = className;
+            _logger = LoggerFactory.CreateLogger(className);
         }
 
         /// <summary>
@@ -19,7 +27,7 @@ namespace Synchronization.Logs
         /// </summary>
         public void Info(string message)
         {
-            ConsoleLogger().LogInformation(message);
+            _logger.LogInformation("{Message}", message);
         }
 
         /// <summary>
@@ -27,26 +35,17 @@ namespace Synchronization.Logs
         /// </summary>
         public void Error(string message)
         {
-            ConsoleLogger().LogError(message);
+            _logger.LogError("{Message}", message);
         }
 
-        /// <summary>
-        /// Method <c>ConsoleLogger</c> is responsible for instantiating the ILogger
-        /// </summary>
-        /// <returns>
-        /// a type to perform logging.
-        /// </returns>
-        private ILogger ConsoleLogger()
+        public void Error(Exception exception, string message)
         {
-            using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
-                builder.AddSimpleConsole(options =>
-                {
-                    options.IncludeScopes = true;
-                    options.SingleLine = true;
-                    options.TimestampFormat = "MM/dd/yyyy HH:mm:ss ";
-                }));
-            return loggerFactory.CreateLogger(_className);
+            _logger.LogError(exception, "{Message}", message);
+        }
+
+        public void Warning(Exception exception, string message)
+        {
+            _logger.LogWarning(exception, "{Message}", message);
         }
     }
 }
-

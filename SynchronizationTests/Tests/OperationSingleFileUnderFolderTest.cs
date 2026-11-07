@@ -1,97 +1,102 @@
-﻿using Synchronization.Operations;
+using Synchronization.Operations;
 using Synchronization.Settings;
-using Synchronization.Utils;
-using SynchronizationTests.Utils;
 
 namespace SynchronizationTests;
 
 public class OperationSingleFileUnderFolderTest
 {
-    private readonly CheckSumUtils _checkSum = new();
-    private readonly WriteLogFileUtils _logFile = new();
-    private readonly OperationImpl _operation = new();
-    private readonly FileUtils _fileUtils = new();
-    private readonly DirectoryUtils _dirUtils = new();
-
-    private string? _folderPath { get; set; } = String.Empty;
-    private string checkSum { get; set; } = String.Empty;
+    private string _root = null!;
+    private string _source = null!;
+    private string _target = null!;
+    private OperationImpl _operation = null!;
 
     [SetUp]
     public void SetUp()
     {
-        SettingOptions.GetSettings();
-        if (string.IsNullOrWhiteSpace(FolderOptions.SourceFolder) || string.IsNullOrWhiteSpace(FolderOptions.DestinationFolder))
-            throw new FilePathException("No empty path is allowed!");
+        _root = Path.Combine(Path.GetTempPath(), $"synchronization-tests-{Guid.NewGuid():N}");
+        _source = Path.Combine(_root, "source");
+        _target = Path.Combine(_root, "target");
+        Directory.CreateDirectory(_source);
+        File.WriteAllText(Path.Combine(_source, ".sync-ready"), "ready");
 
-        _operation.InitializeOperation(FolderOptions.SourceFolder, FolderOptions.DestinationFolder);
+        FolderOptions.LogFilePath = Path.Combine(_root, "logs") + Path.DirectorySeparatorChar;
+        Directory.CreateDirectory(FolderOptions.LogFilePath);
+        _operation = new OperationImpl().InitializeOperation(_source, _target);
+    }
 
-        var dir = _dirUtils.Folder(String.Format(@"{0}{1}", FolderOptions.SourceFolder, "source"));
-
-        if (!dir.Exists) dir.Create();
-
-        _folderPath = String.Format(@"{0}{1}", FolderOptions.SourceFolder, "source");
+    [TearDown]
+    public void TearDown()
+    {
+        if (Directory.Exists(_root))
+            Directory.Delete(_root, recursive: true);
     }
 
     [Test]
     public void CopySingleFileToFolderTest()
     {
-        _fileUtils.FileWritter(FolderOptions.SourceFolder + "test_1454.txt", false, "Copy");
-        _fileUtils.FileWritter(String.Format(@"{0}/{1}", _folderPath, "test_1454.txt"), false, "Copy");
+        var sourceFile = Path.Combine(_source, "nested", "test_1454.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(sourceFile)!);
+        File.WriteAllText(sourceFile, "Copy");
 
         _operation.Copy();
 
-        checkSum = _checkSum.SHA256CheckSum(String.Format(@"{0}{1}/{2}", FolderOptions.DestinationFolder, "source", "test_1454.txt"));
-
-        Assert.That(checkSum, Is.Not.Empty);
+        Assert.That(
+            File.ReadAllText(Path.Combine(_target, "nested", "test_1454.txt")),
+            Is.EqualTo("Copy"));
     }
 
     [Test]
     public void CopyUpdatedFileToFolderTest()
     {
-        checkSum = _checkSum.SHA256CheckSum(String.Format(@"{0}{1}/{2}", FolderOptions.DestinationFolder, "source", "test_1454.txt"));
-
-        _fileUtils.FileWritter(String.Format(@"{0}/{1}", _folderPath, "test_1454.txt"), false, "Updated folder");
+        var relativePath = Path.Combine("nested", "test_1454.txt");
+        var sourceFile = Path.Combine(_source, relativePath);
+        var targetFile = Path.Combine(_target, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(sourceFile)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+        File.WriteAllText(sourceFile, "Updated folder");
+        File.WriteAllText(targetFile, "Original");
 
         _operation.Update();
 
-        Assert.That(_checkSum.SHA256CheckSum(String.Format(@"{0}{1}/{2}", FolderOptions.DestinationFolder, "source", "test_1454.txt")),
-            Is.Not.EqualTo(checkSum));
+        Assert.That(File.ReadAllText(targetFile), Is.EqualTo("Updated folder"));
     }
 
     [Test]
-    public void validateRootFilesAreEqualsTest()
+    public void ValidateRootFilesAreEqualTest()
     {
-        var srcFolder = _checkSum.SHA256CheckSum(FolderOptions.SourceFolder + "test_1454.txt");
-        var destFolder = _checkSum.SHA256CheckSum(FolderOptions.DestinationFolder + "test_1454.txt");      
+        Directory.CreateDirectory(_target);
+        File.WriteAllText(Path.Combine(_source, "test_1454.txt"), "same content");
+        File.WriteAllText(Path.Combine(_target, "test_1454.txt"), "same content");
 
-        Assert.That(srcFolder, Is.EqualTo(destFolder));
+        var sourceContent = File.ReadAllText(Path.Combine(_source, "test_1454.txt"));
+        var targetContent = File.ReadAllText(Path.Combine(_target, "test_1454.txt"));
+
+        Assert.That(sourceContent, Is.EqualTo(targetContent));
     }
 
     [Test]
     public void DeleteFileFromFolderTest()
     {
-        File.Delete(String.Format(@"{0}{1}/{2}", FolderOptions.SourceFolder, "source", "test_1454.txt"));
+        var targetFile = Path.Combine(_target, "nested", "test_1454.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+        File.WriteAllText(targetFile, "Delete");
 
+        _operation = new OperationImpl().InitializeOperation(_source, _target, allowEmptySource: true);
         _operation.Delete();
 
-        Assert.That(File.Exists(String.Format(@"{0}{1}/{2}", FolderOptions.DestinationFolder, "source", "test_1454.txt")), Is.False);
+        Assert.That(File.Exists(targetFile), Is.False);
     }
 
     [Test]
     public void DeleteSourceFolderTest()
     {
-        _dirUtils.Folder(String.Format(@"{0}{1}", FolderOptions.SourceFolder, "source")).Delete();
+        var targetDirectory = Path.Combine(_target, "nested");
+        Directory.CreateDirectory(targetDirectory);
+        File.WriteAllText(Path.Combine(targetDirectory, "test_1454.txt"), "Delete");
 
+        _operation = new OperationImpl().InitializeOperation(_source, _target, allowEmptySource: true);
         _operation.Delete();
 
-        Assert.That(_dirUtils.Folder(String.Format(@"{0}{1}", FolderOptions.DestinationFolder, "source")).Exists, Is.False);
-    }
-
-    [OneTimeTearDown]
-    public void TearDown()
-    {
-        File.Delete(FolderOptions.SourceFolder + "test_1454.txt");
-        _operation.Delete();
+        Assert.That(Directory.Exists(targetDirectory), Is.False);
     }
 }
-

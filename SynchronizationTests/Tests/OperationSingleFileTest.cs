@@ -1,60 +1,67 @@
-﻿using Synchronization.Operations;
+using Synchronization.Operations;
 using Synchronization.Settings;
-using Synchronization.Utils;
-using SynchronizationTests.Utils;
 
 namespace SynchronizationTests;
 
 public class OperationSingleFileTest
 {
-    private readonly CheckSumUtils _checkSum = new();
-    private readonly WriteLogFileUtils _logFile = new();
-    private readonly OperationImpl _operation = new();
-    private readonly FileUtils _fileUtils = new();
-    private string checkSum { get; set; } = String.Empty;
+    private string _root = null!;
+    private string _source = null!;
+    private string _target = null!;
+    private OperationImpl _operation = null!;
 
     [SetUp]
     public void SetUp()
     {
-        SettingOptions.GetSettings();
-        if (string.IsNullOrWhiteSpace(FolderOptions.SourceFolder) || string.IsNullOrWhiteSpace(FolderOptions.DestinationFolder))
-            throw new FilePathException("No empty path is allowed!");
+        _root = Path.Combine(Path.GetTempPath(), $"synchronization-tests-{Guid.NewGuid():N}");
+        _source = Path.Combine(_root, "source");
+        _target = Path.Combine(_root, "target");
+        Directory.CreateDirectory(_source);
+        File.WriteAllText(Path.Combine(_source, ".sync-ready"), "ready");
 
-        _operation.InitializeOperation(FolderOptions.SourceFolder, FolderOptions.DestinationFolder);
+        FolderOptions.LogFilePath = Path.Combine(_root, "logs") + Path.DirectorySeparatorChar;
+        Directory.CreateDirectory(FolderOptions.LogFilePath);
+        _operation = new OperationImpl().InitializeOperation(_source, _target);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        if (Directory.Exists(_root))
+            Directory.Delete(_root, recursive: true);
     }
 
     [Test]
     public void CopySingleFileTest()
     {
-        _fileUtils.FileWritter(FolderOptions.SourceFolder + "test_1454.txt", false, "Copy");
+        File.WriteAllText(Path.Combine(_source, "test_1454.txt"), "Copy");
 
         _operation.Copy();
 
-        checkSum = _checkSum.SHA256CheckSum(FolderOptions.DestinationFolder + "test_1454.txt");
-
-        Assert.That(checkSum, Is.Not.Empty);
+        Assert.That(File.ReadAllText(Path.Combine(_target, "test_1454.txt")), Is.EqualTo("Copy"));
     }
 
     [Test]
     public void CopyUpdatedSingleFileTest()
     {
-        checkSum = _checkSum.SHA256CheckSum(FolderOptions.DestinationFolder + "test_1454.txt");
-
-        _fileUtils.FileWritter(FolderOptions.SourceFolder + "test_1454.txt", true, "Update");
+        File.WriteAllText(Path.Combine(_source, "test_1454.txt"), "Update");
+        Directory.CreateDirectory(_target);
+        File.WriteAllText(Path.Combine(_target, "test_1454.txt"), "Original");
 
         _operation.Update();
 
-        Assert.That(_checkSum.SHA256CheckSum(FolderOptions.DestinationFolder + "test_1454.txt"),
-            Is.Not.EqualTo(checkSum));
+        Assert.That(File.ReadAllText(Path.Combine(_target, "test_1454.txt")), Is.EqualTo("Update"));
     }
 
     [Test]
     public void DeleteSingleFileTest()
     {
-        File.Delete(FolderOptions.SourceFolder + "test_1454.txt");
+        Directory.CreateDirectory(_target);
+        File.WriteAllText(Path.Combine(_target, "test_1454.txt"), "Delete");
 
+        _operation = new OperationImpl().InitializeOperation(_source, _target, allowEmptySource: true);
         _operation.Delete();
 
-        Assert.That(File.Exists(FolderOptions.DestinationFolder + "test_1454.txt"), Is.False);
+        Assert.That(File.Exists(Path.Combine(_target, "test_1454.txt")), Is.False);
     }
 }

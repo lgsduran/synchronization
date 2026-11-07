@@ -1,189 +1,301 @@
-﻿using Synchronization.Logs;
+using Synchronization.Logs;
+using Synchronization.Diagnostics;
 using Synchronization.Utils;
 
-namespace Synchronization.Extensions
+namespace Synchronization.Extensions;
+
+public static class OperationExtensions
 {
-    public static class OperationExtensions
+    private static readonly CheckSumUtils CheckSum = new();
+    private static readonly WriteLogFileUtils LogFile = new();
+    private static readonly ConsoleLog DryRunLog = new("DryRun");
+    private static readonly EnumerationOptions EnumerationOptions = new()
     {
-        private static readonly CheckSumUtils _checkSum = new();
-        private static readonly WriteLogFileUtils _logFile = new();
+        RecurseSubdirectories = true,
+        AttributesToSkip = FileAttributes.ReparsePoint
+    };
 
-        /// <summary>
-        /// Extention Method <c>Copy</c> copies file(s) from source folder to destination folder
-        /// which will be tagged with a Checksum.
-        /// </summary>
-        public static void Copy(this DirectoryInfo source, DirectoryInfo target)
+    internal static void ValidatePaths(DirectoryInfo source, DirectoryInfo target)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(target);
+
+        if (!source.Exists)
+            throw new DirectoryNotFoundException($"Source directory does not exist: {source.FullName}");
+
+        EnsureNotReparsePoint(source.FullName);
+        if (Directory.Exists(target.FullName))
+            EnsureNotReparsePoint(target.FullName);
+
+        var sourcePath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(source.FullName));
+        var targetPath = Path.TrimEndingDirectorySeparator(Path.GetFullPath(target.FullName));
+        if (IsSameOrDescendant(sourcePath, targetPath) || IsSameOrDescendant(targetPath, sourcePath))
+            throw new ArgumentException("Source and destination directories must not be equal or nested.");
+    }
+
+    internal static void ValidateReadyFilePath(DirectoryInfo source, string readyFile)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(readyFile);
+        if (Path.IsPathRooted(readyFile))
+            throw new ArgumentException("The ready-file path must be relative to the source directory.", nameof(readyFile));
+
+        var sourcePath = Path.GetFullPath(source.FullName);
+        var readyPath = Path.GetFullPath(Path.Combine(sourcePath, readyFile));
+        if (!IsSameOrDescendant(readyPath, sourcePath) || Path.GetRelativePath(sourcePath, readyPath) == ".")
+            throw new ArgumentException("The ready file must be inside the source directory.", nameof(readyFile));
+    }
+
+    internal static void ValidateSourceReady(DirectoryInfo source, string readyFile)
+    {
+        var readyPath = Path.Combine(source.FullName, readyFile);
+        if (!File.Exists(readyPath))
+            throw new InvalidOperationException(
+                $"Source is not marked ready. Create '{readyFile}' in the source directory after the source is fully mounted and populated.");
+
+        EnsureNotReparsePoint(readyPath);
+    }
+
+    internal static void ValidateSourceHasFiles(DirectoryInfo source, bool allowEmptySource, string readyFile)
+    {
+        if (!allowEmptySource &&
+            !EnumerateSourceFiles(source, readyFile).Any())
         {
-            var _log = new ConsoleLog("Copy");
+            throw new InvalidOperationException(
+                "The ready source contains no data files. Set Synchronization:AllowEmptySource=true to explicitly allow an empty source.");
+        }
+    }
 
-            source.FullName.DirectoriesSearcher()
-                .ForEach(x =>
-                {
-                    var tempPath = x.Substring(source.FullName.Length);
-                    var newCombinePath = Path.Combine(target.FullName, tempPath);
-                    var value = new DirectoryInfo(newCombinePath);
-                    if (!value.Exists)
-                    {
-                        Directory.CreateDirectory(newCombinePath);
-                        _logFile.WriteFile("Directory Creation", "", x, newCombinePath);
-                        _log.Info(string.Format("Directory(s) {0} created succesfully.", tempPath));
-                    }
-                });
+    private static IEnumerable<FileInfo> EnumerateSourceFiles(DirectoryInfo source, string readyFile)
+    {
+        var readyPath = Path.GetFullPath(Path.Combine(source.FullName, readyFile));
+        return source.EnumerateFiles("*", EnumerationOptions)
+            .Where(file => !string.Equals(
+                Path.GetFullPath(file.FullName),
+                readyPath,
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+    }
 
-            source.FullName.DirectoriesSearcher()
-                .ForEach(src =>
-                {
-                    src.SubFileSearcher()
-                        .ForEach(sourceFile =>
-                        { 
-                            var tempPath = sourceFile.Substring(target.FullName.Length - 1);
-                            var newPath = Path.Combine(target.FullName, tempPath);
-                            if (!File.Exists(newPath))
-                            {
-                                if (File.Exists(sourceFile))
-                                {
-                                    _checkSum.SHA256CheckSum(sourceFile);
-                                    new FileInfo(sourceFile).CopyTo(newPath, true);
-                                    _logFile.WriteFile("copy", sourceFile, src, newPath);
-                                    _log.Info(string.Format("File(s) {0} copied succesfully.", string.Join(",", sourceFile)));
-                                }
-                            }
-                        });
-                });
+    public static void Copy(
+        this DirectoryInfo source,
+        DirectoryInfo target,
+        bool dryRun = false,
+        string readyFile = ".sync-ready",
+        bool allowEmptySource = false)
+    {
+        ValidatePaths(source, target);
+        ValidateReadyFilePath(source, readyFile);
+        ValidateSourceReady(source, readyFile);
+        ValidateSourceHasFiles(source, allowEmptySource, readyFile);
+        if (dryRun)
+            Plan("create directory", target.FullName);
+        else
+            target.Create();
 
-            source.Except(target)                 
-                 .ForEach(file =>
-                 {
-                     if (!File.Exists(Path.Combine(target.FullName, Path.GetFileName(file.Name))))
-                     {
-                         _checkSum.SHA256CheckSum(Path.Combine(source.FullName, Path.GetFileName(file.Name)));
-                         new FileInfo(Path.Combine(source.FullName, Path.GetFileName(file.Name)))
-                            .CopyTo(Path.Combine(target.FullName, Path.GetFileName(file.Name)), true);
-                         _logFile.WriteFile("copy", file.Name, source.FullName, target.FullName);
-                         _log.Info(string.Format("File(s) {0} copied succesfully.", file.Name));
-                     }
-                 });
+        foreach (var sourceDirectory in source.EnumerateDirectories("*", EnumerationOptions))
+        {
+            var relativePath = Path.GetRelativePath(source.FullName, sourceDirectory.FullName);
+            var targetPath = Path.Combine(target.FullName, relativePath);
+            EnsureNoReparsePoints(target.FullName, targetPath);
+
+            if (File.Exists(targetPath))
+            {
+                if (dryRun)
+                    Plan("replace file with directory", relativePath);
+                else
+                    File.Delete(targetPath);
+            }
+
+            if (!Directory.Exists(targetPath))
+            {
+                if (dryRun)
+                    Plan("create directory", relativePath);
+                else
+                    Directory.CreateDirectory(targetPath);
+            }
         }
 
-
-        /// <summary>
-        /// Extension Method <c>Update</c> updates file(s) from source folder to destination folder
-        /// when the content has been modified in source folder. It compares the 
-        /// SHA256 from each file to copy the ones whose algorithm might be different.
-        /// </summary>
-        public static void Update(this DirectoryInfo source, DirectoryInfo target)
+        foreach (var sourceFile in EnumerateSourceFiles(source, readyFile))
         {
-            var _log = new ConsoleLog("Update");
+            var relativePath = Path.GetRelativePath(source.FullName, sourceFile.FullName);
+            var targetPath = Path.Combine(target.FullName, relativePath);
+            var targetDirectory = Path.GetDirectoryName(targetPath)!;
+            EnsureNoReparsePoints(target.FullName, targetDirectory);
+            if (!Directory.Exists(targetDirectory))
+            {
+                if (dryRun)
+                    Plan("create directory", Path.GetRelativePath(target.FullName, targetDirectory));
+                else
+                    Directory.CreateDirectory(targetDirectory);
+            }
 
-            source.FullName.DirectoriesSearcher()
-               .ForEach(src =>
-               {
-                   src.SubFileSearcher()
-                       .ForEach(sourceFile =>
-                       {
-                           var tempPath = sourceFile.Substring(target.FullName.Length - 1);
-                           var newPath = Path.Combine(target.FullName, tempPath);
-                           if (File.Exists(newPath) && File.Exists(sourceFile))
-                           {
-                               var checkingSrc = _checkSum.SHA256CheckSum(sourceFile);
-                               var checkingDest = _checkSum.SHA256CheckSum(newPath);
-                               if (!String.Equals(checkingSrc, checkingDest))
-                               {
-                                   _checkSum.SHA256CheckSum(sourceFile);
-                                   File.Copy(sourceFile, newPath, true);
-                                   _logFile.WriteFile("Update", sourceFile, src, newPath);
-                                   _log.Info(string.Format("File(s) {0} updated succesfully.", sourceFile));
-                               }                               
-                           }
-                       });
-               });
+            EnsureNoReparsePoints(target.FullName, targetPath);
 
-               source.RootFileSearcher()
-                   .ForEach(src =>
-                   {
-                       target.RootFileSearcher()
-                            .ForEach(dest =>
-                            {                            
-                                if (string.Equals(src.Name, dest.Name))
-                                {
-                                    if (dest.Exists)
-                                    {
-                                        var checkingSrc = _checkSum.SHA256CheckSum(src.ToString());
-                                        var checkingDest = _checkSum.SHA256CheckSum(dest.ToString());
-                                        if (!string.Equals(checkingSrc, checkingDest))
-                                        {
-                                            _checkSum.SHA256CheckSum(dest.ToString());
-                                            src.CopyTo(dest.ToString(), true);
-                                            _logFile.WriteFile("Update", src.Name, source.FullName, target.FullName);
-                                            _log.Info(string.Format("File(s) {0} updated succesfully.", dest.Name));
-                                        }
-                                    }
-                                }
-                            
-                            });
-                   });        
+            if (Directory.Exists(targetPath))
+            {
+                if (dryRun)
+                    Plan("replace directory with file", relativePath);
+                else
+                    Directory.Delete(targetPath);
+            }
+
+            if (!File.Exists(targetPath))
+            {
+                if (dryRun)
+                {
+                    Plan("copy file", relativePath);
+                    continue;
+                }
+
+                AtomicFileCopy.Copy(sourceFile.FullName, targetPath, overwrite: false);
+                SynchronizationMetrics.RecordFileCopied();
+                LogFile.WriteFile("Copy", sourceFile.Name, sourceFile.DirectoryName ?? "", targetDirectory);
+                new ConsoleLog("Copy").Info($"Copied: {relativePath}");
+            }
+        }
+    }
+
+    public static void Update(
+        this DirectoryInfo source,
+        DirectoryInfo target,
+        bool dryRun = false,
+        string readyFile = ".sync-ready",
+        bool allowEmptySource = false)
+    {
+        ValidatePaths(source, target);
+        ValidateReadyFilePath(source, readyFile);
+        ValidateSourceReady(source, readyFile);
+        ValidateSourceHasFiles(source, allowEmptySource, readyFile);
+        if (dryRun)
+            Plan("create directory", target.FullName);
+        else
+            target.Create();
+
+        foreach (var sourceFile in EnumerateSourceFiles(source, readyFile))
+        {
+            var relativePath = Path.GetRelativePath(source.FullName, sourceFile.FullName);
+            var targetPath = Path.Combine(target.FullName, relativePath);
+            EnsureNoReparsePoints(target.FullName, targetPath);
+
+            if (Directory.Exists(targetPath) && !dryRun)
+                Directory.Delete(targetPath);
+
+            if (File.Exists(targetPath) &&
+                !string.Equals(
+                    CheckSum.SHA256CheckSum(sourceFile.FullName),
+                    CheckSum.SHA256CheckSum(targetPath),
+                    StringComparison.Ordinal))
+            {
+                if (dryRun)
+                {
+                    Plan("update file", relativePath);
+                    continue;
+                }
+
+                AtomicFileCopy.Copy(sourceFile.FullName, targetPath, overwrite: true);
+                SynchronizationMetrics.RecordFileUpdated();
+                LogFile.WriteFile("Update", sourceFile.Name, sourceFile.DirectoryName ?? "", targetPath);
+                new ConsoleLog("Update").Info($"Updated: {relativePath}");
+            }
+        }
+    }
+
+    public static void Delete(
+        this DirectoryInfo source,
+        DirectoryInfo target,
+        bool dryRun = false,
+        bool allowEmptySource = false,
+        string readyFile = ".sync-ready")
+    {
+        ValidatePaths(source, target);
+        ValidateReadyFilePath(source, readyFile);
+        ValidateSourceReady(source, readyFile);
+        if (!Directory.Exists(target.FullName))
+            return;
+
+        ValidateSourceHasFiles(source, allowEmptySource, readyFile);
+
+        foreach (var targetFile in target.EnumerateFiles("*", EnumerationOptions))
+        {
+            var relativePath = Path.GetRelativePath(target.FullName, targetFile.FullName);
+            var sourcePath = Path.Combine(source.FullName, relativePath);
+            EnsureNotReparsePoint(targetFile.FullName);
+
+            if (!File.Exists(sourcePath))
+            {
+                if (dryRun)
+                {
+                    Plan("delete file", relativePath);
+                    continue;
+                }
+
+                File.Delete(targetFile.FullName);
+                SynchronizationMetrics.RecordFileDeleted();
+                LogFile.WriteFile("Delete", targetFile.Name, source.FullName, targetFile.DirectoryName ?? "");
+                new ConsoleLog("Delete").Info($"Deleted file: {relativePath}");
+            }
         }
 
-        /// <summary>
-        /// Extension Method <c>Delete</c> deletes file(s) from destination folder
-        /// when the source folder does not have the same file(s) as in
-        /// destination folder.
-        /// </summary>
-        public static void Delete(this DirectoryInfo source, DirectoryInfo target)
+        foreach (var targetDirectory in target.EnumerateDirectories("*", EnumerationOptions)
+                     .OrderByDescending(directory => directory.FullName.Length))
         {
-            var _log = new ConsoleLog("Deleted");
+            var relativePath = Path.GetRelativePath(target.FullName, targetDirectory.FullName);
+            var sourcePath = Path.Combine(source.FullName, relativePath);
+            EnsureNotReparsePoint(targetDirectory.FullName);
 
-            target.FullName.DirectoriesSearcher()
-                .ForEach(src =>
+            if (!Directory.Exists(sourcePath))
+            {
+                if (dryRun)
                 {
-                    var tempPath = src.Substring(target.FullName.Length);
-                    var newPath = Path.Combine(source.FullName, tempPath);
-                    if (!Directory.Exists(newPath))
-                    {
-                        if (Directory.Exists(src))
-                        {
-                            Directory.Delete(src, true);
-                            _logFile.WriteFile("Delete", src, "", "");
-                            _log.Info(string.Format("Deleted: {0}", src));
-                        }
-                    }
-                });
+                    Plan("delete directory", relativePath);
+                    continue;
+                }
 
-            target.FullName.DirectoriesSearcher()
-                .ForEach(src =>
-                {
-                    src.SubFileSearcher()
-                        .ForEach(targetFile =>
-                        {                   
-                            var tempPath = targetFile.Substring(target.FullName.Length);
-                            var newPath = Path.Combine(source.FullName, tempPath);
-                            if (!File.Exists(newPath))
-                            {
-                                if (File.Exists(targetFile))
-                                {
-                                    File.Delete(targetFile);
-                                    _logFile.WriteFile("Delete", targetFile, "", newPath);
-                                    _log.Info(string.Format("File(s) {0} deleted succesfully.", targetFile));
-                                }                            
-                            }
-                        });
-                });
+                Directory.Delete(targetDirectory.FullName);
+                SynchronizationMetrics.RecordDirectoryDeleted();
+                LogFile.WriteFile("Delete", targetDirectory.FullName, source.FullName, "");
+                new ConsoleLog("Delete").Info($"Deleted directory: {relativePath}");
+            }
+        }
+    }
 
-            target.Except(source)                    
-                .ForEach(file =>
-                {
-                    if (!File.Exists(Path.Combine(source.FullName, Path.GetFileName(file.Name))))
-                    {
-                        if (File.Exists(Path.Combine(target.FullName, Path.GetFileName(file.Name))))
-                        {
-                            File.Delete(Path.Combine(target.FullName, Path.GetFileName(file.Name)));
-                            _logFile.WriteFile("Delete", file.Name, "", target.FullName);
-                            _log.Info(string.Format("File(s) {0} deleted succesfully.", file.Name));
-                        }
-                    }
-                });
+    private static void Plan(string action, string path)
+    {
+        DryRunLog.Info($"Would {action}: {path}");
+    }
+
+    private static bool IsSameOrDescendant(string path, string parent)
+    {
+        var relativePath = Path.GetRelativePath(parent, path);
+        return relativePath == "." ||
+               (!Path.IsPathRooted(relativePath) &&
+                relativePath != ".." &&
+                !relativePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
+    }
+
+    private static void EnsureNotReparsePoint(string path)
+    {
+        if ((File.Exists(path) || Directory.Exists(path)) &&
+            (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+        {
+            throw new IOException($"Symbolic links and reparse points are not supported: {path}");
+        }
+    }
+
+    private static void EnsureNoReparsePoints(string root, string path)
+    {
+        var relativePath = Path.GetRelativePath(root, path);
+        var currentPath = root;
+        EnsureNotReparsePoint(currentPath);
+
+        if (relativePath == ".")
+            return;
+
+        foreach (var segment in relativePath.Split(
+                     [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+                     StringSplitOptions.RemoveEmptyEntries))
+        {
+            currentPath = Path.Combine(currentPath, segment);
+            EnsureNotReparsePoint(currentPath);
         }
     }
 }
-
-   

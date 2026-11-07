@@ -1,10 +1,17 @@
-version: '3.4'
-
 services:
   synchronization:
     image: lgsduran/synchronization
     build:
       context: .
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      Folders__SourceFolder: /var/tmp/srcFolder
+      Folders__DestinationFolder: /var/tmp/destFolder
+      Folders__LogFilePath: /var/tmp/logs
+      Synchronization__DryRun: "false"
+      Synchronization__AllowEmptySource: "false"
+      Synchronization__SourceReadyFile: .sync-ready
+      Synchronization__IntervalSeconds: "15"
     volumes:
       - src:/var/tmp/srcFolder
       - dest:/var/tmp/destFolder

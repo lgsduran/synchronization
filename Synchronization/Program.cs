@@ -9,40 +9,54 @@ class Program
     private static ConsoleLog _log = new ConsoleLog("Main");
     static async Task Main(string[] args)
     {
-        //Load paths
-        SettingOptions.GetSettings();
+        IScheduler? scheduler = null;
+        using var cancellationTokenSource = new CancellationTokenSource();
+        ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
+        {
+            eventArgs.Cancel = true;
+            cancellationTokenSource.Cancel();
+        };
+        Console.CancelKeyPress += cancelHandler;
 
-        var _schedulerFactory = new StdSchedulerFactory();
-        var scheduler = await _schedulerFactory.GetScheduler();
+        try
+        {
+            SettingOptions.GetSettings();
 
-        // and start it off
-        await scheduler.Start();
+            var schedulerFactory = new StdSchedulerFactory();
+            scheduler = await schedulerFactory.GetScheduler();
+            await scheduler.Start();
 
-        // define the job and tie it to the class
-        var job = JobBuilder.Create<SynchronizationJob>()
-            .WithIdentity("SynchronizationJob", "SynchronizationGroup")
-            .Build();
+            var job = JobBuilder.Create<SynchronizationJob>()
+                .WithIdentity("SynchronizationJob", "SynchronizationGroup")
+                .Build();
 
-        // Trigger the job to run now, and then repeat according to the seconds
-        var trigger = TriggerBuilder.Create()
-            .WithIdentity("SynchronizationTrigger", "SynchronizationGroup")
-            .StartNow()
-            .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(15)
-                .RepeatForever())
-            .Build();
+            var trigger = TriggerBuilder.Create()
+                .WithIdentity("SynchronizationTrigger", "SynchronizationGroup")
+                .StartNow()
+                .WithSimpleSchedule(x => x
+                    .WithInterval(TimeSpan.FromSeconds(FolderOptions.IntervalSeconds))
+                    .RepeatForever())
+                .Build();
 
-        // Tell Quartz to schedule the job using our trigger
-        await scheduler.ScheduleJob(job, trigger);
+            await scheduler.ScheduleJob(job, trigger);
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            _log.Info("Shutdown requested.");
+        }
+        catch (Exception exception)
+        {
+            _log.Error(exception, "Application failed.");
+            throw;
+        }
+        finally
+        {
+            Console.CancelKeyPress -= cancelHandler;
+            if (scheduler is not null)
+                await scheduler.Shutdown(waitForJobsToComplete: true);
 
-        // some sleep to show what's happening
-        await Task.Delay(TimeSpan.FromSeconds(120));
-
-        // and last shut down the scheduler when you are ready to close your program
-        await scheduler.Shutdown();
-        _log.Info("scheduler has been shut down.");
-
-        //Console.WriteLine("Press any key to close the application");
-        //Console.ReadKey();
+            _log.Info("Scheduler has been shut down.");
+        }
     }   
 }
